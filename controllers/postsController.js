@@ -3,7 +3,7 @@ const Post = require('../models/post');
 const User = require("../models/user");
 const Category = require("../models/category");
 
-const getPostsByUserId = async (req = request, res = response) => {
+const getPostsByUserId = async(req = request, res = response) => {
     try {
         const { userId } = req.params;
         if (!userId) {
@@ -17,7 +17,7 @@ const getPostsByUserId = async (req = request, res = response) => {
     }
 };
 
-const getPostsByCategoriesId = async (req = request, res = response) => {
+const getPostsByCategoriesId = async(req = request, res = response) => {
     try {
         const { categoriesId } = req.params;
         if (!categoriesId || categoriesId.length <= 0) {
@@ -32,9 +32,9 @@ const getPostsByCategoriesId = async (req = request, res = response) => {
     }
 };
 
-const updatePost = async (req = request, res = response) => {
+const updatePost = async(req = request, res = response) => {
     try {
-        const { userId, title, subtitle, images, categoryId, id } = req.body;
+        const { userId, name, age, images, categories, id, description } = req.body;
         if (!id) {
             return res.status(400).json({ message: "Id is required." });
         }
@@ -53,23 +53,13 @@ const updatePost = async (req = request, res = response) => {
             return res.status(400).json({ message: "UserId not valid or user does not exists." });
         }
 
-        if (!title) {
-            return res.status(400).json({ message: "Title is required." });
-        }
+        const categoriesId = await findOrCreateCategories(categories);
 
-        if (!categoryId) {
-            return res.status(400).json({ message: "CategoryId is required." });
-        }
-
-        const category = await Category.findById(categoryId);
-        if (!category) {
-            return res.status(400).json({ message: "CategoryId not valid or category does not exists." });
-        }
-
-        post.title = title;
-        post.subtitle = subtitle;
+        post.name = name;
+        post.age = age;
         post.images = images;
-        post.categoryId = categoryId;
+        post.categoriesId = categoriesId;
+        post.description = description;
         await Post.updateOne({ _id: id }, post);
         return res.status(201).json(post);
     } catch (error) {
@@ -78,9 +68,9 @@ const updatePost = async (req = request, res = response) => {
     }
 };
 
-const createPost = async (req = request, res = response) => {
+const createPost = async(req = request, res = response) => {
     try {
-        const { userId, title, subtitle, images, categoryId } = req.body;
+        const { userId, name, age, images, categories, description } = req.body;
         if (!userId) {
             return res.status(400).json({ message: "UserId is required." });
         }
@@ -90,28 +80,18 @@ const createPost = async (req = request, res = response) => {
             return res.status(400).json({ message: "UserId not valid or user does not exists." });
         }
 
-        if (!title) {
-            return res.status(400).json({ message: "Title is required." });
-        }
-
-        if (!categoryId) {
-            return res.status(400).json({ message: "CategoryId is required." });
-        }
-
-        const category = await Category.findById(categoryId);
-        if (!category) {
-            return res.status(400).json({ message: "CategoryId not valid or category does not exists." });
-        }
+        const categoriesId = await findOrCreateCategories(categories);
 
         const newPost = new Post({
-            title,
-            subtitle,
+            name,
+            age,
+            description,
             author: {
                 userId,
                 userProfilePhoto: user.profilePhoto
             },
             images,
-            categoryId
+            categoriesId
         });
         const savedPost = await Post.create(newPost);
         return res.status(201).json(savedPost);
@@ -119,6 +99,21 @@ const createPost = async (req = request, res = response) => {
         console.log(error);
         return res.status(500).json({ message: "Server error, communicate with administrator" });
     }
+};
+
+const findOrCreateCategories = async(categories) => {
+    return await Promise.all(categories.map(async(c) => {
+        const category = await Category.findOne({ $where: { name: `/^${c}$/i` } });
+        if (!category) {
+            const newCategory = await Category.create(new Category({
+                name: c
+            }));
+
+            return newCategory._id;
+        }
+
+        return category._id;
+    }));
 };
 
 module.exports = {

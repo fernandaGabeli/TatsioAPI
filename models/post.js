@@ -2,14 +2,17 @@ const mongoose = require('mongoose');
 const { Author } = require('./author');
 
 const PostSchema = new mongoose.Schema({
-    title: {
+    name: {
         type: String,
         required: true
     },
-    subtitle: {
+    age: {
+        type: Number,
+        required: true
+    },
+    description: {
         type: String,
-        required: false,
-        default: ''
+        required: true
     },
     author: {
         type: Author,
@@ -25,8 +28,8 @@ const PostSchema = new mongoose.Schema({
         required: true,
         default: false
     },
-    categoryId: {
-        type: String,
+    categoriesId: {
+        type: Array,
         required: true
     }
 }, { timestamps: true });

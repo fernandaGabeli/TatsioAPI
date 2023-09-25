@@ -10,7 +10,9 @@ class Server {
         this.port = process.env.PORT;
 
         this.paths = {
-            users: '/api/users'
+            users: '/api/users',
+            posts: '/api/posts',
+            categories: '/api/categories'
         }
 
         this.connectDB();
@@ -27,7 +29,7 @@ class Server {
         } catch (error) {
             console.log(error);
         }
-        
+
     }
 
 
@@ -42,7 +44,9 @@ class Server {
     }
 
     routes() {
-        this.app.use(this.paths.users, require('../routes/users'));
+        this.app.use(this.paths.users, require('../routes/usersRoutes'));
+        this.app.use(this.paths.posts, require('../routes/postsRoutes'));
+        this.app.use(this.paths.categories, require('../routes/categoriesRoutes'));
     }
 
     listen() {

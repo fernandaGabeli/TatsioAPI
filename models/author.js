@@ -1,4 +1,8 @@
-export const Author = {
-    userId: '',
-    userProfilePhoto: ''
+const Author = {
+    userId: String,
+    userProfilePhoto: String
+}
+
+module.exports = {
+    Author
 }

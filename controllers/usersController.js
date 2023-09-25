@@ -2,7 +2,7 @@ const { request, response } = require("express");
 const bcryptjs = require('bcryptjs');
 const User = require("../models/user");
 
-const registerUser = async (req = request, res = response) => {
+const registerUser = async(req = request, res = response) => {
     const { username, firstname, lastname, cellphone, password, profilePhoto } = req.body;
     if (!username) {
         return res.status(400).json({ message: "Username is required" });
@@ -43,6 +43,48 @@ const registerUser = async (req = request, res = response) => {
     return res.status(201).json(savedUser);
 };
 
+const login = async(req, res = response) => {
+
+    const { email, password } = req.body;
+
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({
+                message: 'user / Password invalid'
+            });
+        }
+
+        if (!user.estado) {
+            return res.status(400).json({
+                message: 'user / Password invalid'
+            });
+        }
+
+        const validPassword = bcryptjs.compareSync(password, user.password);
+        if (!validPassword) {
+            return res.status(400).json({
+                message: 'user / Password invalid'
+            });
+        }
+
+        const token = await generarJWT(user.id);
+
+        res.json({
+            user,
+            token
+        })
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            message: 'Server error, communicate with administrator'
+        });
+    }
+
+}
+
 module.exports = {
-    registerUser
+    registerUser,
+    login
 }
