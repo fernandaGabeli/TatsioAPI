@@ -3,19 +3,19 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 
-const validateJWT = async(req = request, res = response, next) => {
+const validateJWT = async (req = request, res = response, next) => {
 
-    const token = req.header('x-token');
+    let token = req.headers.authorization;
 
     if (!token) {
         return res.status(401).json({
-            msg: 'No hay token en la petición'
+            msg: 'Auth token required'
         });
     }
 
     try {
-
-        const { uid } = jwt.verify(token, process.env.SECRETORPRIVATEKEY);
+        token = token.replace("Bearer ", "");
+        const { uid } = jwt.verify(token, process.env.PRIVATEKEY);
         const user = await User.findById(uid);
 
         if (!user) {

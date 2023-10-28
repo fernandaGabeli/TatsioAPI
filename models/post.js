@@ -29,7 +29,7 @@ const PostSchema = new mongoose.Schema({
         default: false
     },
     categoriesId: {
-        type: Array,
+        type: [String],
         required: true
     }
 }, { timestamps: true });

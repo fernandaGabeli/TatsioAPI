@@ -5,6 +5,6 @@ const router = Router();
 
 router.get("/", [validateJWT], getCategories);
 router.post("/", [validateJWT], createCategory);
-router.post("/:categoryId", [validateJWT], deleteCategory);
+router.delete("/:categoryId", [validateJWT], deleteCategory);
 
 module.exports = router;

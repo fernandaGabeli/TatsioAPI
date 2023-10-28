@@ -1,8 +1,9 @@
 const { request, response } = require("express");
 const bcryptjs = require('bcryptjs');
 const User = require("../models/user");
+const { generateJWT } = require("../helpers/generateJWT");
 
-const registerUser = async(req = request, res = response) => {
+const registerUser = async (req = request, res = response) => {
     const { username, firstname, lastname, cellphone, password, profilePhoto } = req.body;
     if (!username) {
         return res.status(400).json({ message: "Username is required" });
@@ -43,19 +44,54 @@ const registerUser = async(req = request, res = response) => {
     return res.status(201).json(savedUser);
 };
 
-const login = async(req, res = response) => {
-
-    const { email, password } = req.body;
-
+const editUser = async (req = request, res = response) => {
     try {
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({
-                message: 'user / Password invalid'
-            });
+        const { username, firstname, lastname, cellphone, profilePhoto, _id } = req.body;
+        if (!_id) {
+            return res.status(400).json({ message: "Username is required" });
         }
 
-        if (!user.estado) {
+        if (!username) {
+            return res.status(400).json({ message: "Username is required" });
+        }
+
+        if (!firstname) {
+            return res.status(400).json({ message: "Firstname is required" });
+        }
+
+        if (!lastname) {
+            return res.status(400).json({ message: "Lastname is required" });
+        }
+
+        if (!cellphone) {
+            return res.status(400).json({ message: "Cellphone is required" });
+        }
+
+        const user = await User.findById(_id);
+        if (!user) {
+            return res.status(400).json({ message: "Id not valid or user does not exists." });
+        }
+
+        user.username = username;
+        user.firstname = firstname;
+        user.lastname = lastname;
+        user.cellphone = cellphone;
+        user.profilePhoto = profilePhoto;
+        await User.updateOne({ _id }, user);
+        return res.status(201).json(user);
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Server error, communicate with administrator" });
+    }
+};
+
+const login = async (req, res = response) => {
+
+    const { username, password } = req.body;
+
+    try {
+        const user = await User.findOne({ username });
+        if (!user) {
             return res.status(400).json({
                 message: 'user / Password invalid'
             });
@@ -68,7 +104,7 @@ const login = async(req, res = response) => {
             });
         }
 
-        const token = await generarJWT(user.id);
+        const token = await generateJWT(user.id);
 
         res.json({
             user,
@@ -84,7 +120,13 @@ const login = async(req, res = response) => {
 
 }
 
+const getUsers = async (req = request, res = response) => {
+    return res.status(200).json((await User.find()));
+}
+
 module.exports = {
     registerUser,
-    login
+    login,
+    editUser,
+    getUsers
 }

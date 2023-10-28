@@ -3,7 +3,7 @@ const Category = require("../models/category");
 
 const getCategories = async (req = request, res = response) => {
     try {
-        return await Category.find();
+        return res.status(200).json(await Category.find());
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Server error, communicate with administrator" });
@@ -17,7 +17,7 @@ const createCategory = async (req = request, res = response) => {
             return res.status(400).json({ message: "Name is required" });
         }
 
-        const categoryAlreadyExists = await Category.findOne({ name });
+        const categoryAlreadyExists = await Category.findOne({ name: new RegExp(`^${name}$`, 'i') });
         if (categoryAlreadyExists) {
             return res.status(400).json({ message: "Category alredy exists" });
         }
@@ -38,8 +38,8 @@ const deleteCategory = async (req = request, res = response) => {
             return res.status(400).json({ message: "CategoryId is required" });
         }
 
-        await Category.deleteOne({ _id: id });
-        return res.status(200);
+        await Category.deleteOne({ _id: categoryId });
+        return res.status(200).json({message: "Category deleted"});
     } catch (error) {
         console.log(error);
         return res.status(500).json({ message: "Server error, communicate with administrator" });
